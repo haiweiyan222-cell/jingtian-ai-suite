@@ -746,9 +746,15 @@ function renderWorkbench() {
     '<div id="toastContainer" class="toast-container"></div>';
 }
 
+let personnelSearchKeyword = '';
+
 function renderPersonnel() {
+  const kw = personnelSearchKeyword.toLowerCase().trim();
   let rows = '';
+  let count = 0;
   personnelData.forEach(function(p, i) {
+    if (kw && p.name.toLowerCase().indexOf(kw) === -1 && p.phone.indexOf(kw) === -1) return;
+    count++;
     const checked = selectedRows.has(i) ? 'checked' : '';
     const statusClass = p.status === '启用' ? 'active' : 'inactive';
     rows += '<tr><td class="cb-cell"><input type="checkbox" data-personnel-cb="' + i + '" ' + checked + '/></td>' +
@@ -772,7 +778,7 @@ function renderPersonnel() {
     '<th class="cb-cell"><input type="checkbox" data-personnel-cb-all/></th>' +
     '<th>姓名</th><th>手机号</th><th>工号</th><th>所属组织</th><th>角色</th><th>岗位</th><th>状态</th><th>操作</th></tr></thead>' +
     '<tbody>' + rows + '</tbody></table>' +
-    '<div class="list-pagination"><span>共 128 条</span><div class="pages">' +
+    '<div class="list-pagination"><span>共 ' + (kw ? count + ' 条（筛选）' : personnelData.length + ' 条') + '</span><div class="pages">' +
     '<div class="page">上一页</div><div class="page active">1</div><div class="page">2</div><div class="page">3</div><div class="page">下一页</div></div></div>' +
     '</div></div><div id="toastContainer" class="toast-container"></div>';
 }
@@ -1440,11 +1446,6 @@ document.getElementById('protoContent').addEventListener('click', function(e) {
     );
     return;
   }
-  // Search enter
-  if (target.hasAttribute('data-personnel-search') && e.type === 'keydown' && e.key === 'Enter') {
-    showToast('搜索完成', 'info');
-    return;
-  }
 
   /* ===== ROLE PAGE ===== */
   // Add role
@@ -1971,6 +1972,32 @@ document.getElementById('protoContent').addEventListener('click', function(e) {
       }
     }
     return;
+  }
+});
+
+// Input event delegation for search boxes
+document.getElementById('protoContent').addEventListener('input', function(e) {
+  const target = e.target;
+  // Personnel search - real-time filter
+  if (target.hasAttribute('data-personnel-search')) {
+    personnelSearchKeyword = target.value;
+    const tbody = document.querySelector('.list-mock tbody');
+    if (!tbody) return;
+    const kw = personnelSearchKeyword.toLowerCase().trim();
+    let rows = ''; let count = 0;
+    personnelData.forEach(function(p, i) {
+      if (kw && p.name.toLowerCase().indexOf(kw) === -1 && p.phone.indexOf(kw) === -1) return;
+      count++;
+      const checked = selectedRows.has(i) ? 'checked' : '';
+      const statusClass = p.status === '启用' ? 'active' : 'inactive';
+      rows += '<tr><td class="cb-cell"><input type="checkbox" data-personnel-cb="' + i + '" ' + checked + '/></td>' +
+        '<td>' + p.name + '</td><td>' + p.phone + '</td><td>' + p.code + '</td><td>' + p.org + '</td><td>' + p.role + '</td><td>' + p.pos + '</td>' +
+        '<td><span class="status ' + statusClass + '">' + p.status + '</span></td>' +
+        '<td><span class="action-link" data-personnel-edit="' + i + '">编辑</span> · <span class="action-link" data-personnel-view="' + i + '">查看</span></td></tr>';
+    });
+    tbody.innerHTML = rows;
+    const pageSpan = document.querySelector('.list-pagination span');
+    if (pageSpan) pageSpan.textContent = '共 ' + (kw ? count + ' 条（筛选）' : personnelData.length + ' 条');
   }
 });
 
