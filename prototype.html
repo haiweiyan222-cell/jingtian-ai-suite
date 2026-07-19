@@ -443,7 +443,7 @@ const pageNotes = {
   ],
   personnel: [
     { type: '', title: '数据权限规则', text: '人员信息<strong>无账号</strong>时：数据权限对象=创建人，范围默认取值本人及下属（不跟随数据权限配置）。<strong>有账号</strong>时：数据权限对象=数据权限范围内全部人员账号。下级角色创建的数据也能查看。' },
-    { type: 'amber', title: '手机号唯一校验', text: '手机号不允许重复，保存时校验。重复时toast提示"该手机号已存在"。支持多格式：手机号/区号+座机号/港澳台电话。' },
+    { type: 'amber', title: '手机号唯一校验', text: '手机号不允许重复，保存时校验。重复时toast提示"该手机号已存在，请重新输入"。支持多格式：手机号/区号+座机号/港澳台电话。' },
     { type: '', title: '2号人事字段同步 [V26.8]', text: '人员管理新增<strong>岗位、职务、职级</strong>三个字段，从2号人事系统映射。中台只读，不支持增删改。增删改在二号系统中完成，通过同步机制自动同步。' },
     { type: 'amber', title: '收货地址 [V26.8]', text: '新增/编辑人员页面支持维护收货地址。通过弹窗管理地址的新增、编辑、删除、搜索、设置默认。同一人员仅允许一个默认地址。用于游戏奖品兑换寄送场景。' },
     { type: 'danger', title: '景云销/2号人事校验规则', text: '新增账号选择景云销特定组织时：toast提示"角色不支持多选，请联系管理员"。选择2号人事特定组织时：toast提示"不可选择2号人事标记组织，请联系管理员"。' },
@@ -462,7 +462,7 @@ const pageNotes = {
   message: [
     { type: '', title: '消息类型', text: '消息分为<strong>通知消息、审批消息</strong>两大类。工作台小铃铛分tab展示，消息中心统一列表管理。' },
     { type: 'amber', title: '消息跳转', text: '点击消息卡片或"详情"按钮，根据消息来源应用跳转到对应页面。审批消息跳转到审批详情，通知消息跳转到通知内容。' },
-    { type: '', title: '批量已读', text: '支持多选消息后批量标记为已读。小铃铛抽屉中也支持按tab批量已读（每次8条）。' },
+    { type: '', title: '批量已读', text: '支持多选消息后批量标记为已读。小铃铛抽屉中也支持按tab批量已读（每次8条）。无未读时 toast 提示"暂无未读消息"。' },
     { type: '', title: '短信通道', text: '短信运营商默认为<strong>羚羊</strong>，羚羊发短信失败则走<strong>阿里</strong>兜底。确保消息送达可靠性。' },
   ],
   approval: [
@@ -1253,6 +1253,9 @@ document.getElementById('protoContent').addEventListener('click', function(e) {
   }
   // Drawer batch read
   if (target.hasAttribute('data-drawer-batch-read')) {
+    var hasUnread = false;
+    document.querySelectorAll('.wb-msg-item .dot').forEach(function(d){ if (d.style.background !== 'var(--text-light)' && d.style.background !== 'rgb(148, 163, 184)') hasUnread = true; });
+    if (!hasUnread) { showToast('暂无未读消息', 'info'); return; }
     document.querySelectorAll('.wb-msg-item .dot').forEach(function(d){ d.style.background = 'var(--text-light)'; });
     showToast('已全部标记为已读', 'success');
     return;
@@ -1354,7 +1357,7 @@ document.getElementById('protoContent').addEventListener('click', function(e) {
           if (!name) { showToast('姓名为必填项', 'error'); return; }
           if (!phone) { showToast('手机号为必填项', 'error'); return; }
           if (!code) { showToast('工号为必填项', 'error'); return; }
-          if (personnelData.some(function(p){ return p.phone === phone; })) { showToast('该手机号已存在', 'error'); return; }
+          if (personnelData.some(function(p){ return p.phone === phone; })) { showToast('该手机号已存在，请重新输入', 'error'); return; }
           const sel = modal.querySelectorAll('.proto-select');
           personnelData.push({ name: name, phone: phone, code: code, org: sel[0].value || '景田-总部', role: sel[1].value || '业务员', pos: sel[1].value || '业务专员', status: '启用' });
           modal.remove();
@@ -1387,7 +1390,7 @@ document.getElementById('protoContent').addEventListener('click', function(e) {
           const phone = inputs[1].value.trim();
           if (!name) { showToast('姓名为必填项', 'error'); return; }
           if (!phone) { showToast('手机号为必填项', 'error'); return; }
-          if (phone !== p.phone && personnelData.some(function(d, j){ return j !== editPersonnelIdx && d.phone === phone; })) { showToast('该手机号已存在', 'error'); return; }
+          if (phone !== p.phone && personnelData.some(function(d, j){ return j !== editPersonnelIdx && d.phone === phone; })) { showToast('该手机号已存在，请重新输入', 'error'); return; }
           const sel = modal.querySelectorAll('.proto-select');
           personnelData[editPersonnelIdx].name = name;
           personnelData[editPersonnelIdx].phone = phone;
@@ -1588,6 +1591,13 @@ document.getElementById('protoContent').addEventListener('click', function(e) {
   if (target.hasAttribute('data-role-disable')) {
     if (selectedRows.size === 0) { showToast('请先选择要停用的角色', 'warning'); return; }
     showConfirm('确定要停用所选角色吗？停用前请确保无下级启用角色和绑定人员。', function() {
+      let hasIssue = false;
+      selectedRows.forEach(function(i) {
+        var r = roleData[i];
+        // Check for active sub-roles (simplified: check if any other enabled role has this as parent)
+        if (r.count > 0) { showToast('角色"' + r.name + '"有绑定人员，请先清空或停用', 'error'); hasIssue = true; }
+      });
+      if (hasIssue) return;
       selectedRows.forEach(function(i) { roleData[i].status = '停用'; });
       showToast('停用成功', 'success');
       showPage('role');
