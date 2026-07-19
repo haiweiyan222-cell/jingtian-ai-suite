@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>景田数智一体化系统 · AI三件套</title>
+<style>
+:root {
+  --primary: #1a56db;
+  --primary-dark: #1e3a5f;
+  --primary-light: #eff6ff;
+  --success: #059669;
+  --success-bg: #ecfdf5;
+  --amber: #d97706;
+  --amber-bg: #fffbeb;
+  --purple: #7c3aed;
+  --purple-bg: #f5f3ff;
+  --danger: #ef4444;
+  --text: #1e293b;
+  --text-secondary: #475569;
+  --text-light: #94a3b8;
+  --bg: #f8fafc;
+  --card-bg: #fff;
+  --border: #e2e8f0;
+  --radius: 16px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; background:var(--bg); color:var(--text); line-height:1.7; min-height:100vh; }
+
+.hero {
+  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 50%, var(--purple) 100%);
+  color:#fff; padding:64px 32px 56px; text-align:center;
+}
+.hero .badge { display:inline-block; background:rgba(255,255,255,0.18); padding:4px 16px; border-radius:20px; font-size:13px; font-weight:600; margin-bottom:16px; }
+.hero h1 { font-size:36px; font-weight:800; letter-spacing:-0.5px; margin-bottom:12px; }
+.hero .subtitle { font-size:17px; opacity:0.85; max-width:720px; margin:0 auto 24px; }
+.hero .tags { display:flex; justify-content:center; gap:12px; flex-wrap:wrap; }
+.hero .tag { display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,0.15); padding:6px 18px; border-radius:20px; font-size:13px; }
+
+.container { max-width:1100px; margin:0 auto; padding:0 24px 48px; }
+
+.concept-bar {
+  background:var(--card-bg); border:1px solid var(--border); border-radius:12px;
+  padding:20px 28px; margin:-32px auto 40px; max-width:1100px; position:relative; z-index:1;
+  box-shadow:0 4px 16px rgba(0,0,0,0.08); text-align:center;
+}
+.concept-bar p { font-size:15px; color:var(--text-secondary); }
+.concept-bar strong { color:var(--primary); }
+
+.section-title { font-size:22px; font-weight:700; margin:40px 0 8px; text-align:center; }
+.section-desc { font-size:14px; color:var(--text-secondary); text-align:center; margin-bottom:32px; }
+
+.card-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; margin-bottom:48px; }
+
+.deliverable-card {
+  background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius);
+  overflow:hidden; transition:all 0.2s; cursor:pointer; text-decoration:none; color:inherit;
+  display:flex; flex-direction:column;
+}
+.deliverable-card:hover { transform:translateY(-4px); box-shadow:0 8px 24px rgba(0,0,0,0.12); }
+.deliverable-card .card-top { padding:28px 24px 20px; border-top:4px solid; }
+.deliverable-card.blue .card-top { border-top-color:var(--primary); }
+.deliverable-card.green .card-top { border-top-color:var(--success); }
+.deliverable-card.purple .card-top { border-top-color:var(--purple); }
+.deliverable-card .file-name { font-size:12px; font-weight:700; padding:2px 10px; border-radius:6px; display:inline-block; margin-bottom:12px; }
+.deliverable-card.blue .file-name { background:var(--primary-light); color:var(--primary); }
+.deliverable-card.green .file-name { background:var(--success-bg); color:var(--success); }
+.deliverable-card.purple .file-name { background:var(--purple-bg); color:var(--purple); }
+.deliverable-card h3 { font-size:20px; font-weight:700; margin-bottom:8px; }
+.deliverable-card .role { font-size:13px; color:var(--text-secondary); margin-bottom:16px; }
+.deliverable-card .role strong { color:var(--text); }
+.deliverable-card ul { list-style:none; padding:0; margin-bottom:20px; }
+.deliverable-card ul li { font-size:13px; padding:5px 0 5px 20px; position:relative; color:var(--text-secondary); }
+.deliverable-card ul li::before { content:''; position:absolute; left:0; top:11px; width:8px; height:8px; border-radius:50%; }
+.deliverable-card.blue ul li::before { background:var(--primary); }
+.deliverable-card.green ul li::before { background:var(--success); }
+.deliverable-card.purple ul li::before { background:var(--purple); }
+.deliverable-card .card-bottom { margin-top:auto; padding:16px 24px; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+.deliverable-card .open-btn { font-size:14px; font-weight:600; }
+.deliverable-card.blue .open-btn { color:var(--primary); }
+.deliverable-card.green .open-btn { color:var(--success); }
+.deliverable-card.purple .open-btn { color:var(--purple); }
+.deliverable-card .arrow { font-size:18px; }
+
+.flow-section { background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius); padding:32px; margin-bottom:48px; }
+.flow-section h2 { font-size:20px; font-weight:700; margin-bottom:20px; text-align:center; }
+.flow-steps { display:flex; align-items:stretch; gap:0; }
+.flow-step { flex:1; text-align:center; padding:16px 12px; position:relative; }
+.flow-step .step-icon { width:56px; height:56px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px; margin:0 auto 12px; }
+.flow-step:nth-child(1) .step-icon { background:var(--amber-bg); }
+.flow-step:nth-child(2) .step-icon { background:var(--primary-light); }
+.flow-step:nth-child(3) .step-icon { background:var(--success-bg); }
+.flow-step:nth-child(4) .step-icon { background:var(--purple-bg); }
+.flow-step .step-title { font-size:14px; font-weight:700; margin-bottom:4px; }
+.flow-step .step-desc { font-size:12px; color:var(--text-secondary); }
+.flow-step:not(:last-child)::after { content:'→'; position:absolute; right:-8px; top:28px; font-size:20px; color:var(--text-light); z-index:1; }
+
+.compare-section { margin-bottom:48px; }
+.compare-section h2 { font-size:20px; font-weight:700; margin-bottom:20px; text-align:center; }
+.compare-table { width:100%; border-collapse:separate; border-spacing:0; border-radius:12px; overflow:hidden; border:1px solid var(--border); }
+.compare-table th { background:#f1f5f9; padding:14px 16px; text-align:left; font-size:13px; font-weight:700; color:var(--text-secondary); }
+.compare-table th:last-child { border-left:2px solid var(--primary); background:var(--primary-light); color:var(--primary); }
+.compare-table td { padding:14px 16px; font-size:13px; border-top:1px solid #f1f5f9; }
+.compare-table td:last-child { border-left:2px solid var(--primary); background:#fafbff; }
+.compare-table td:first-child { font-weight:600; }
+
+.footer { text-align:center; padding:32px 24px; color:var(--text-light); font-size:13px; border-top:1px solid var(--border); }
+
+@media (max-width:768px) {
+  .card-grid { grid-template-columns:1fr; }
+  .flow-steps { flex-direction:column; }
+  .flow-step:not(:last-child)::after { content:'↓'; right:auto; top:auto; bottom:-16px; left:50%; transform:translateX(-50%); }
+}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <span class="badge">AI三件套 · proposal + 原型 + spec</span>
+  <h1>景田数智一体化系统</h1>
+  <p class="subtitle">从「PRD脑补」到「三件套契约」—— 面向B端复杂业务系统的分层交付方案</p>
+  <div class="tags">
+    <span class="tag">V26.8</span>
+    <span class="tag">Web + APP 双端</span>
+    <span class="tag">6+ 外部系统集成</span>
+    <span class="tag">11个核心模块</span>
+  </div>
+</div>
+
+<div class="container">
+
+<div class="concept-bar">
+  <p>三件套模式：<strong>proposal.md</strong> 收住范围（团队看） · <strong>原型.html</strong> 承载评审（人看） · <strong>spec.md</strong> 进入执行（Agent和开发看）</p>
+</div>
+
+<h2 class="section-title">三件套入口</h2>
+<p class="section-desc">点击下方卡片打开对应文档。三件套配合使用：团队看 proposal 决策范围，人看原型评审消歧义，Agent和开发看 spec 锁定执行。</p>
+
+<div class="card-grid">
+  <a class="deliverable-card blue" href="proposal.md">
+    <div class="card-top">
+      <span class="file-name">proposal.md</span>
+      <h3>范围定义文档（Markdown）</h3>
+      <p class="role"><strong>读者：</strong>产品负责人、研发负责人、业务方决策层</p>
+      <ul>
+        <li>Why — 为什么要做这个系统</li>
+        <li>What — 系统做什么（模块清单）</li>
+        <li>Impact — 预期影响（效率/成本/安全/扩展）</li>
+        <li>不做的事项 — Out of Scope</li>
+        <li>后续迭代计划 — V27~V30+</li>
+      </ul>
+    </div>
+    <div class="card-bottom">
+      <span class="open-btn">打开文档</span>
+      <span class="arrow">→</span>
+    </div>
+  </a>
+
+  <a class="deliverable-card green" href="prototype.html">
+    <div class="card-top">
+      <span class="file-name">原型.html</span>
+      <h3>交互原型</h3>
+      <p class="role"><strong>读者：</strong>产品、设计、研发、测试全员评审</p>
+      <ul>
+        <li>左侧导航 — 12个模块页面可切换</li>
+        <li>中间原型 — 可浏览的UI界面（Web+APP）</li>
+        <li>右侧旁注 — 每个页面的交互逻辑说明</li>
+        <li>Web/App设备切换</li>
+        <li>包含登录/工作台/人员/角色/消息/AI等</li>
+      </ul>
+    </div>
+    <div class="card-bottom">
+      <span class="open-btn">打开原型</span>
+      <span class="arrow">→</span>
+    </div>
+  </a>
+
+  <a class="deliverable-card purple" href="spec.md">
+    <div class="card-top">
+      <span class="file-name">spec.md</span>
+      <h3>执行规格契约（Markdown）</h3>
+      <p class="role"><strong>读者：</strong>AI Agent、开发工程师、测试工程师</p>
+      <ul>
+        <li>Capability — 11个模块能力定义</li>
+        <li>Requirement — 结构化需求清单</li>
+        <li>Scenario — Given-When-Then 场景</li>
+        <li>ACC — 验收条件（逐项打勾）</li>
+        <li>Out of Scope — 全局不做事项</li>
+      </ul>
+    </div>
+    <div class="card-bottom">
+      <span class="open-btn">打开规格</span>
+      <span class="arrow">→</span>
+    </div>
+  </a>
+</div>
+
+<div class="flow-section">
+  <h2>三件套协作流程</h2>
+  <div class="flow-steps">
+    <div class="flow-step">
+      <div class="step-icon">📝</div>
+      <div class="step-title">proposal 定范围</div>
+      <div class="step-desc">团队决策要不要做、做到哪</div>
+    </div>
+    <div class="flow-step">
+      <div class="step-icon">🖥️</div>
+      <div class="step-title">原型消歧义</div>
+      <div class="step-desc">围绕可浏览原型评审，不脑补</div>
+    </div>
+    <div class="flow-step">
+      <div class="step-icon">📋</div>
+      <div class="step-title">spec 锁执行</div>
+      <div class="step-desc">Agent按spec拆任务、写代码</div>
+    </div>
+    <div class="flow-step">
+      <div class="step-icon">✅</div>
+      <div class="step-title">ACC 验收</div>
+      <div class="step-desc">逐项打勾，客观可验证</div>
+    </div>
+  </div>
+</div>
+
+<div class="compare-section">
+  <h2>传统PRD vs 三件套模式</h2>
+  <table class="compare-table">
+    <thead>
+      <tr><th style="width:20%;">维度</th><th>传统PRD模式</th><th>三件套模式</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>信息组织</td><td>一份文档承载背景+交互+验收+异常</td><td>三文件各司其职：范围/原型/规格</td></tr>
+      <tr><td>评审方式</td><td>对着文字脑补界面，五个人五个画面</td><td>围绕可浏览原型讨论，所见即所得</td></tr>
+      <tr><td>验收标准</td><td>主观判断"是不是我要的"，返工2-3轮</td><td>ACC逐项打勾，客观可验证</td></tr>
+      <tr><td>变更管理</td><td>全文搜索PRD逐处修改，容易遗漏</td><td>按影响范围精准定位文件，Git可回溯</td></tr>
+      <tr><td>Agent友好度</td><td>长PRD中背景与执行混合，输出不稳定</td><td>spec是结构化契约，Agent按scenario拆任务</td></tr>
+    </tbody>
+  </table>
+</div>
+
+</div>
+
+<div class="footer">
+  <p>景田数智一体化系统 · AI三件套 · 2026-07-17</p>
+  <p style="margin-top:4px;font-size:12px;">proposal.html + prototype.html + spec.html + index.html</p>
+</div>
+
+</body>
+</html>
