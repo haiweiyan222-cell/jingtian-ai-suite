@@ -418,6 +418,8 @@ let currentPage = 'login';
 let selectedRows = new Set();
 let checkboxAll = false;
 let currentOrgNode = '总部';
+let editPersonnelIdx = -1;
+let editRoleIdx = -1;
 
 /* ============================================================
    Page Definitions (notes preserved from original)
@@ -608,6 +610,11 @@ function showModal(title, bodyHtml, opts) {
   protoArea.appendChild(overlay);
   overlay.querySelector('.close-btn').onclick = function(){ overlay.remove(); };
   overlay.addEventListener('click', function(e){ if(e.target === overlay) overlay.remove(); });
+  // Auto-bind footer buttons
+  const cancelBtn = overlay.querySelector('.modal-footer .btn.cancel');
+  const confirmBtn = overlay.querySelector('.modal-footer .btn.confirm');
+  if (cancelBtn) cancelBtn.onclick = function(){ overlay.remove(); if(opts.onCancel) opts.onCancel(); };
+  if (confirmBtn) confirmBtn.onclick = function(){ if(opts.onConfirm) opts.onConfirm(); else overlay.remove(); };
   return overlay;
 }
 
@@ -1337,13 +1344,31 @@ document.getElementById('protoContent').addEventListener('click', function(e) {
       '<div class="form-field"><div class="label">所属组织 <span class="req">*</span></div><select class="proto-select"><option value="">请选择</option><option>景田-总部</option><option>景田-华南区</option><option>景田-华东区</option></select></div>' +
       '<div class="form-field"><div class="label">角色 <span class="req">*</span></div><select class="proto-select"><option value="">请选择</option><option>系统管理员</option><option>产品经理</option><option>区域经理</option><option>业务员</option></select></div>' +
       '</div>',
-      { footer: '<button class="btn cancel">取消</button><button class="btn confirm" id="personnelSaveBtn">保存</button>' }
+      { footer: '<button class="btn cancel">取消</button><button class="btn confirm">保存</button>',
+        onConfirm: function(){
+          const modal = document.querySelector('.modal-overlay');
+          const inputs = modal.querySelectorAll('.proto-input');
+          const name = inputs[0].value.trim();
+          const phone = inputs[1].value.trim();
+          const code = inputs[2].value.trim();
+          if (!name) { showToast('姓名为必填项', 'error'); return; }
+          if (!phone) { showToast('手机号为必填项', 'error'); return; }
+          if (!code) { showToast('工号为必填项', 'error'); return; }
+          if (personnelData.some(function(p){ return p.phone === phone; })) { showToast('该手机号已存在', 'error'); return; }
+          const sel = modal.querySelectorAll('.proto-select');
+          personnelData.push({ name: name, phone: phone, code: code, org: sel[0].value || '景田-总部', role: sel[1].value || '业务员', pos: sel[1].value || '业务专员', status: '启用' });
+          modal.remove();
+          showPage(currentPage);
+          showToast('人员 ' + name + ' 已成功添加', 'success');
+        }
+      }
     );
     return;
   }
   // Edit personnel (inline)
   if (target.hasAttribute('data-personnel-edit')) {
     const idx = parseInt(target.getAttribute('data-personnel-edit'));
+    editPersonnelIdx = idx;
     const p = personnelData[idx];
     showModal('编辑人员 - ' + p.name,
       '<div class="form-grid">' +
@@ -1354,7 +1379,26 @@ document.getElementById('protoContent').addEventListener('click', function(e) {
       '<div class="form-field"><div class="label">所属组织</div><select class="proto-select"><option>景田-总部</option><option>景田-华南区</option><option>景田-华东区</option></select></div>' +
       '<div class="form-field"><div class="label">角色</div><select class="proto-select"><option>系统管理员</option><option>产品经理</option><option>区域经理</option><option>业务员</option></select></div>' +
       '</div>',
-      { footer: '<button class="btn cancel">取消</button><button class="btn confirm">保存</button>' }
+      { footer: '<button class="btn cancel">取消</button><button class="btn confirm">保存</button>',
+        onConfirm: function(){
+          const modal = document.querySelector('.modal-overlay');
+          const inputs = modal.querySelectorAll('.proto-input');
+          const name = inputs[0].value.trim();
+          const phone = inputs[1].value.trim();
+          if (!name) { showToast('姓名为必填项', 'error'); return; }
+          if (!phone) { showToast('手机号为必填项', 'error'); return; }
+          if (phone !== p.phone && personnelData.some(function(d, j){ return j !== editPersonnelIdx && d.phone === phone; })) { showToast('该手机号已存在', 'error'); return; }
+          const sel = modal.querySelectorAll('.proto-select');
+          personnelData[editPersonnelIdx].name = name;
+          personnelData[editPersonnelIdx].phone = phone;
+          personnelData[editPersonnelIdx].org = sel[0].value;
+          personnelData[editPersonnelIdx].role = sel[1].value;
+          personnelData[editPersonnelIdx].pos = sel[1].value;
+          modal.remove();
+          showPage(currentPage);
+          showToast('人员信息已更新', 'success');
+        }
+      }
     );
     return;
   }
@@ -1431,7 +1475,7 @@ document.getElementById('protoContent').addEventListener('click', function(e) {
   if (target.hasAttribute('data-personnel-batch-edit')) {
     if (selectedRows.size !== 1) { showToast('请选择一行数据进行编辑', 'warning'); return; }
     const idx = selectedRows.values().next().value;
-    target.setAttribute('data-personnel-edit', idx);
+    editPersonnelIdx = idx;
     const p = personnelData[idx];
     showModal('编辑人员 - ' + p.name,
       '<div class="form-grid">' +
@@ -1442,7 +1486,25 @@ document.getElementById('protoContent').addEventListener('click', function(e) {
       '<div class="form-field"><div class="label">所属组织</div><select class="proto-select"><option>景田-总部</option><option>景田-华南区</option><option>景田-华东区</option></select></div>' +
       '<div class="form-field"><div class="label">角色</div><select class="proto-select"><option>系统管理员</option><option>产品经理</option><option>区域经理</option><option>业务员</option></select></div>' +
       '</div>',
-      { footer: '<button class="btn cancel">取消</button><button class="btn confirm">保存</button>' }
+      { footer: '<button class="btn cancel">取消</button><button class="btn confirm">保存</button>',
+        onConfirm: function(){
+          const modal = document.querySelector('.modal-overlay');
+          const inputs = modal.querySelectorAll('.proto-input');
+          const name = inputs[0].value.trim();
+          const phone = inputs[1].value.trim();
+          if (!name) { showToast('姓名为必填项', 'error'); return; }
+          if (!phone) { showToast('手机号为必填项', 'error'); return; }
+          const sel = modal.querySelectorAll('.proto-select');
+          personnelData[editPersonnelIdx].name = name;
+          personnelData[editPersonnelIdx].phone = phone;
+          personnelData[editPersonnelIdx].org = sel[0].value;
+          personnelData[editPersonnelIdx].role = sel[1].value;
+          personnelData[editPersonnelIdx].pos = sel[1].value;
+          modal.remove();
+          showPage(currentPage);
+          showToast('人员信息已更新', 'success');
+        }
+      }
     );
     return;
   }
@@ -1458,13 +1520,29 @@ document.getElementById('protoContent').addEventListener('click', function(e) {
       '<div class="form-field"><div class="label">数据权限</div><select class="proto-select"><option>全部数据</option><option>本人及下属</option><option>负责组织</option><option>本人</option></select></div>' +
       '<div class="form-field" style="grid-column:1/-1;"><div class="label">描述</div><textarea class="proto-textarea" rows="3" placeholder="请输入角色描述"></textarea></div>' +
       '</div>',
-      { footer: '<button class="btn cancel">取消</button><button class="btn confirm">保存</button>' }
+      { footer: '<button class="btn cancel">取消</button><button class="btn confirm">保存</button>',
+        onConfirm: function(){
+          const modal = document.querySelector('.modal-overlay');
+          const inputs = modal.querySelectorAll('.proto-input');
+          const name = inputs[0].value.trim();
+          const code = inputs[1].value.trim();
+          if (!name) { showToast('角色名称为必填项', 'error'); return; }
+          if (!code) { showToast('角色编码为必填项', 'error'); return; }
+          if (roleData.some(function(r){ return r.code === code; })) { showToast('该角色编码已存在', 'error'); return; }
+          const sel = modal.querySelectorAll('.proto-select');
+          roleData.push({ name: name, code: code.toUpperCase(), parent: sel[0].value || '无', permission: sel[1].value || '本人', count: 0, status: '启用' });
+          modal.remove();
+          showPage(currentPage);
+          showToast('角色 ' + name + ' 已成功添加', 'success');
+        }
+      }
     );
     return;
   }
   // Edit role
   if (target.hasAttribute('data-role-edit')) {
     const idx = parseInt(target.getAttribute('data-role-edit'));
+    editRoleIdx = idx;
     const r = roleData[idx];
     showModal('编辑角色 - ' + r.name,
       '<div class="form-grid">' +
@@ -1473,7 +1551,20 @@ document.getElementById('protoContent').addEventListener('click', function(e) {
       '<div class="form-field"><div class="label">上级角色</div><select class="proto-select"><option value="">无</option><option>系统管理员</option><option>产品经理</option><option>区域经理</option></select></div>' +
       '<div class="form-field"><div class="label">数据权限</div><select class="proto-select"><option>全部数据</option><option>本人及下属</option><option>负责组织</option><option>本人</option></select></div>' +
       '</div>',
-      { footer: '<button class="btn cancel">取消</button><button class="btn confirm">保存</button>' }
+      { footer: '<button class="btn cancel">取消</button><button class="btn confirm">保存</button>',
+        onConfirm: function(){
+          const modal = document.querySelector('.modal-overlay');
+          const name = modal.querySelectorAll('.proto-input')[0].value.trim();
+          if (!name) { showToast('角色名称为必填项', 'error'); return; }
+          const sel = modal.querySelectorAll('.proto-select');
+          roleData[editRoleIdx].name = name;
+          roleData[editRoleIdx].parent = sel[0].value || '无';
+          roleData[editRoleIdx].permission = sel[1].value || '本人';
+          modal.remove();
+          showPage(currentPage);
+          showToast('角色信息已更新', 'success');
+        }
+      }
     );
     return;
   }
@@ -1501,6 +1592,14 @@ document.getElementById('protoContent').addEventListener('click', function(e) {
       showToast('停用成功', 'success');
       showPage('role');
     });
+    return;
+  }
+  // Role enable
+  if (target.hasAttribute('data-role-enable')) {
+    if (selectedRows.size === 0) { showToast('请先选择要启用的角色', 'warning'); return; }
+    selectedRows.forEach(function(i) { roleData[i].status = '启用'; });
+    showToast('启用成功', 'success');
+    showPage('role');
     return;
   }
   // Role persons
@@ -1549,7 +1648,18 @@ document.getElementById('protoContent').addEventListener('click', function(e) {
       '<div class="form-field"><div class="label">应用体系</div><select class="proto-select"><option>景田</option><option>经销商</option><option>供应商</option><option>品牌方</option><option>司机</option></select></div>' +
       '<div class="form-field"><div class="label">负责人</div><input type="text" class="proto-input" placeholder="请输入负责人"/></div>' +
       '</div>',
-      { footer: '<button class="btn cancel">取消</button><button class="btn confirm">保存</button>' }
+      { footer: '<button class="btn cancel">取消</button><button class="btn confirm">保存</button>',
+        onConfirm: function(){
+          const modal = document.querySelector('.modal-overlay');
+          const inputs = modal.querySelectorAll('.proto-input');
+          const name = inputs[0].value.trim();
+          const code = inputs[1].value.trim();
+          if (!name) { showToast('组织名称为必填项', 'error'); return; }
+          if (!code) { showToast('组织编码为必填项', 'error'); return; }
+          showToast('组织 ' + name + ' 已成功添加', 'success');
+          modal.remove();
+        }
+      }
     );
     return;
   }
@@ -1561,7 +1671,15 @@ document.getElementById('protoContent').addEventListener('click', function(e) {
       '<div class="form-field"><div class="label">组织编码</div><input type="text" class="proto-input" placeholder="请输入组织编码"/></div>' +
       '<div class="form-field"><div class="label">应用体系</div><select class="proto-select"><option>景田</option><option>经销商</option><option>供应商</option><option>品牌方</option><option>司机</option></select></div>' +
       '<div class="form-field"><div class="label">负责人</div><input type="text" class="proto-input" placeholder="请输入负责人"/></div></div>',
-      { footer: '<button class="btn cancel">取消</button><button class="btn confirm">保存</button>' }
+      { footer: '<button class="btn cancel">取消</button><button class="btn confirm">保存</button>',
+        onConfirm: function(){
+          const modal = document.querySelector('.modal-overlay');
+          const name = modal.querySelectorAll('.proto-input')[0].value.trim();
+          if (!name) { showToast('组织名称为必填项', 'error'); return; }
+          showToast('组织信息已更新', 'success');
+          modal.remove();
+        }
+      }
     );
     return;
   }
