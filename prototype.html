@@ -521,36 +521,45 @@ const pageInfo = {
 /* ============================================================
    Mock Data
    ============================================================ */
-const personnelData = [
+// localStorage persistence helper
+function loadStore(key, defaults) {
+  try { var s = localStorage.getItem('proto_' + key); if (s) return JSON.parse(s); } catch(e){}
+  return defaults;
+}
+function saveStore(key, data) {
+  try { localStorage.setItem('proto_' + key, JSON.stringify(data)); } catch(e){}
+}
+
+let personnelData = loadStore('personnelData', [
   { id:1, name:'闫海伟', phone:'138****8888', code:'JT001', org:'景田-总部', role:'系统管理员', pos:'技术总监', status:'启用' },
   { id:2, name:'庄佳萍', phone:'139****6666', code:'JT002', org:'景田-总部', role:'产品经理', pos:'产品负责人', status:'启用' },
   { id:3, name:'马思思', phone:'137****2233', code:'JT003', org:'景田-华南区', role:'区域经理', pos:'销售经理', status:'启用' },
   { id:4, name:'刘颖梨', phone:'136****5544', code:'JT004', org:'景田-华东区', role:'业务员', pos:'业务专员', status:'停用' },
   { id:5, name:'张绍学', phone:'135****7788', code:'JT005', org:'景田-总部', role:'研发工程师', pos:'高级开发', status:'启用' },
-];
+]);
 
-const roleData = [
+let roleData = loadStore('roleData', [
   { id:1, name:'系统管理员', code:'ADMIN', parent:'-', perm:'全部数据', count:3, status:'启用' },
   { id:2, name:'产品经理', code:'PM', parent:'系统管理员', perm:'本人及下属', count:5, status:'启用' },
   { id:3, name:'区域经理', code:'RM', parent:'系统管理员', perm:'负责组织', count:12, status:'启用' },
   { id:4, name:'业务员', code:'SALER', parent:'区域经理', perm:'本人', count:86, status:'启用' },
   { id:5, name:'仓库管理员', code:'WM', parent:'系统管理员', perm:'负责组织', count:8, status:'停用' },
-];
+]);
 
-const messageData = [
+let messageData = loadStore('messageData', [
   { id:1, app:'流程管理', type:'审批消息', title:'待审批：采购申请单 #20260717001', content:'张绍学提交了采购申请，请尽快审批', time:'2026-07-17 14:30', status:'未读' },
   { id:2, app:'基础资料', type:'通知消息', title:'组织架构调整通知', content:'技术部新增"AI研发组"子部门', time:'2026-07-17 10:15', status:'未读' },
   { id:3, app:'系统设置', type:'系统消息', title:'系统升级公告 V26.8', content:'系统将于今晚22:00进行升级维护', time:'2026-07-16 16:00', status:'已读' },
   { id:4, app:'BI报表', type:'通知消息', title:'月度报表已生成', content:'2026年6月销售月报已生成，请查看', time:'2026-07-15 09:00', status:'已读' },
-];
+]);
 
-const logData = [
+let logData = loadStore('logData', [
   { who:'闫海伟', org:'景田-总部', mod:'人员管理', act:'新增', content:'新增人员：张三', ip:'192.168.1.100', time:'2026-07-17 14:30:25' },
   { who:'庄佳萍', org:'景田-总部', mod:'角色管理', act:'编辑', content:'编辑角色：区域经理', ip:'192.168.1.101', time:'2026-07-17 13:15:08' },
   { who:'马思思', org:'景田-华南区', mod:'组织管理', act:'新增', content:'新增组织：深圳办事处', ip:'10.0.0.52', time:'2026-07-17 11:20:33' },
   { who:'张绍学', org:'景田-总部', mod:'消息管理', act:'发送', content:'发送通知：系统升级公告', ip:'192.168.1.103', time:'2026-07-16 16:00:12' },
   { who:'刘颖梨', org:'景田-华东区', mod:'流程管理', act:'审批', content:'通过审批：采购申请', ip:'10.0.1.22', time:'2026-07-16 15:02:00' },
-];
+]);
 
 const aiChats = [
   { id:1, name:'DeepSeek 对话', messages:[
@@ -1111,6 +1120,11 @@ function showPage(key) {
   currentPage = key;
   selectedRows.clear();
   checkboxAll = false;
+  // Auto-persist all mutable data
+  saveStore('personnelData', personnelData);
+  saveStore('roleData', roleData);
+  saveStore('messageData', messageData);
+  saveStore('logData', logData);
   const info = pageInfo[key];
   if (!info) return;
 
